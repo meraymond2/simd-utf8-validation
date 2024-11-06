@@ -1,3 +1,4 @@
+#include <stdio.h>
 #include "fsm.h"
 
 /*
@@ -326,3 +327,55 @@ const char next_state[108] = {
         // ERROR + INVALID
         ERROR,
 };
+
+size_t index_of_leading_byte(const char *bytes, size_t len, size_t start) {
+    size_t i = start;
+    while (i < len) {
+        unsigned char b = bytes[i];
+        unsigned char category = category_table[b];
+        if (category == ASCII || category == DOUBLE_PREFIX || category == TRIPLE_PREFIX || category == QUAD_PREFIX) {
+            return i;
+        }
+        i++;
+    }
+    return i;
+}
+
+bool fsm_validate(const char *bytes, size_t len) {
+    if (len < 32) {
+        unsigned char state = VALID;
+        size_t i = 0;
+        while (i < len) {
+            unsigned char b = bytes[i];
+            unsigned char category = category_table[b];
+            unsigned char idx = category + state;
+            state = next_state[idx];
+            i++;
+        }
+        return state == VALID;
+    }
+
+    size_t chunk_size = len / 3;
+    size_t i = 0;
+    size_t j = index_of_leading_byte(bytes, len, chunk_size);
+    size_t k = index_of_leading_byte(bytes, len, chunk_size * 2);
+
+    unsigned char s1 = VALID;
+    unsigned char s2 = VALID;
+    unsigned char s3 = VALID;
+    while (i < j && j < k && k < len) {
+        unsigned char b1 = bytes[i];
+        unsigned char b2 = bytes[j];
+        unsigned char b3 = bytes[k];
+        unsigned char c1 = category_table[b1];
+        unsigned char c2 = category_table[b2];
+        unsigned char c3 = category_table[b3];
+        s1 = next_state[c1 + s1];
+        s2 = next_state[c2 + s2];
+        s3 = next_state[c3 + s3];
+        i++;
+        j++;
+        k++;
+    }
+    return s1 == VALID && s2 == VALID && s3 == VALID;
+}

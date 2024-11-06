@@ -3,8 +3,10 @@
 #include <stdlib.h>
 #include <time.h>
 #include "branchy.h"
+#include "fsm.h"
 
 const char *filename = "/home/michael/dev/jpp/citylots.json";
+//const char *filename = "/home/michael/dev/utf8-validation/branchy.c";
 
 int main(void) {
     struct stat sb;
@@ -15,7 +17,8 @@ int main(void) {
     fread(buf, 1, filesize, input);
 
     clock_t start = clock();
-    bool is_valid = branchy_validate(buf, filesize);
+//    bool is_valid = branchy_validate(buf, filesize);
+    bool is_valid = fsm_validate(buf, filesize);
     clock_t end = clock();
     float seconds = (float)(end - start) / CLOCKS_PER_SEC;
 
