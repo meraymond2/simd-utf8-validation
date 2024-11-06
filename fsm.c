@@ -16,67 +16,80 @@ Bytes are classified as belonging to one of twelve possible categories.
   12. continuation-high, 1010_0000 - 1011_1111
  */
 
-enum Category category_table[255] = {
+const char ASCII = 0;
+const char DOUBLE_PREFIX = 1;
+const char TRIPLE_PREFIX = 2;
+const char QUAD_PREFIX = 3;
+const char TRIPLE_CHECK_OVERLONG = 4;
+const char TRIPLE_CHECK_SURROGATE = 5;
+const char QUAD_CHECK_OVERLONG = 6;
+const char QUAD_CHECK_TOO_LARGE = 7;
+const char CONTINUATION_LOW = 8;
+const char CONTINUATION_MID = 9;
+const char CONTINUATION_HIGH = 10;
+const char INVALID = 11;
+
+const char category_table[255] = {
         // 0000_0000 - 0111_1111, 0-127
-        ascii, ascii, ascii, ascii, ascii, ascii, ascii, ascii,
-        ascii, ascii, ascii, ascii, ascii, ascii, ascii, ascii,
-        ascii, ascii, ascii, ascii, ascii, ascii, ascii, ascii,
-        ascii, ascii, ascii, ascii, ascii, ascii, ascii, ascii,
-        ascii, ascii, ascii, ascii, ascii, ascii, ascii, ascii,
-        ascii, ascii, ascii, ascii, ascii, ascii, ascii, ascii,
-        ascii, ascii, ascii, ascii, ascii, ascii, ascii, ascii,
-        ascii, ascii, ascii, ascii, ascii, ascii, ascii, ascii,
-        ascii, ascii, ascii, ascii, ascii, ascii, ascii, ascii,
-        ascii, ascii, ascii, ascii, ascii, ascii, ascii, ascii,
-        ascii, ascii, ascii, ascii, ascii, ascii, ascii, ascii,
-        ascii, ascii, ascii, ascii, ascii, ascii, ascii, ascii,
-        ascii, ascii, ascii, ascii, ascii, ascii, ascii, ascii,
-        ascii, ascii, ascii, ascii, ascii, ascii, ascii, ascii,
-        ascii, ascii, ascii, ascii, ascii, ascii, ascii, ascii,
-        ascii, ascii, ascii, ascii, ascii, ascii, ascii, ascii,
+        ASCII, ASCII, ASCII, ASCII, ASCII, ASCII, ASCII, ASCII,
+        ASCII, ASCII, ASCII, ASCII, ASCII, ASCII, ASCII, ASCII,
+        ASCII, ASCII, ASCII, ASCII, ASCII, ASCII, ASCII, ASCII,
+        ASCII, ASCII, ASCII, ASCII, ASCII, ASCII, ASCII, ASCII,
+        ASCII, ASCII, ASCII, ASCII, ASCII, ASCII, ASCII, ASCII,
+        ASCII, ASCII, ASCII, ASCII, ASCII, ASCII, ASCII, ASCII,
+        ASCII, ASCII, ASCII, ASCII, ASCII, ASCII, ASCII, ASCII,
+        ASCII, ASCII, ASCII, ASCII, ASCII, ASCII, ASCII, ASCII,
+        ASCII, ASCII, ASCII, ASCII, ASCII, ASCII, ASCII, ASCII,
+        ASCII, ASCII, ASCII, ASCII, ASCII, ASCII, ASCII, ASCII,
+        ASCII, ASCII, ASCII, ASCII, ASCII, ASCII, ASCII, ASCII,
+        ASCII, ASCII, ASCII, ASCII, ASCII, ASCII, ASCII, ASCII,
+        ASCII, ASCII, ASCII, ASCII, ASCII, ASCII, ASCII, ASCII,
+        ASCII, ASCII, ASCII, ASCII, ASCII, ASCII, ASCII, ASCII,
+        ASCII, ASCII, ASCII, ASCII, ASCII, ASCII, ASCII, ASCII,
+        ASCII, ASCII, ASCII, ASCII, ASCII, ASCII, ASCII, ASCII,
         // 1000_0000 - 1000_1111, 128 - 143
-        continuation_low, continuation_low, continuation_low, continuation_low,
-        continuation_low, continuation_low, continuation_low, continuation_low,
-        continuation_low, continuation_low, continuation_low, continuation_low,
-        continuation_low, continuation_low, continuation_low, continuation_low,
+        CONTINUATION_LOW, CONTINUATION_LOW, CONTINUATION_LOW, CONTINUATION_LOW,
+        CONTINUATION_LOW, CONTINUATION_LOW, CONTINUATION_LOW, CONTINUATION_LOW,
+        CONTINUATION_LOW, CONTINUATION_LOW, CONTINUATION_LOW, CONTINUATION_LOW,
+        CONTINUATION_LOW, CONTINUATION_LOW, CONTINUATION_LOW, CONTINUATION_LOW,
         // 1001_0000 - 1001_1111, 144 - 159
-        continuation_mid, continuation_mid, continuation_mid, continuation_mid,
-        continuation_mid, continuation_mid, continuation_mid, continuation_mid,
-        continuation_mid, continuation_mid, continuation_mid, continuation_mid,
-        continuation_mid, continuation_mid, continuation_mid, continuation_mid,
+        CONTINUATION_MID, CONTINUATION_MID, CONTINUATION_MID, CONTINUATION_MID,
+        CONTINUATION_MID, CONTINUATION_MID, CONTINUATION_MID, CONTINUATION_MID,
+        CONTINUATION_MID, CONTINUATION_MID, CONTINUATION_MID, CONTINUATION_MID,
+        CONTINUATION_MID, CONTINUATION_MID, CONTINUATION_MID, CONTINUATION_MID,
         // 1010_0000 - 1011_1111, 160 - 191
-        continuation_high, continuation_high, continuation_high, continuation_high,
-        continuation_high, continuation_high, continuation_high, continuation_high,
-        continuation_high, continuation_high, continuation_high, continuation_high,
-        continuation_high, continuation_high, continuation_high, continuation_high,
-        continuation_high, continuation_high, continuation_high, continuation_high,
-        continuation_high, continuation_high, continuation_high, continuation_high,
-        continuation_high, continuation_high, continuation_high, continuation_high,
-        continuation_high, continuation_high, continuation_high, continuation_high,
+        CONTINUATION_HIGH, CONTINUATION_HIGH, CONTINUATION_HIGH, CONTINUATION_HIGH,
+        CONTINUATION_HIGH, CONTINUATION_HIGH, CONTINUATION_HIGH, CONTINUATION_HIGH,
+        CONTINUATION_HIGH, CONTINUATION_HIGH, CONTINUATION_HIGH, CONTINUATION_HIGH,
+        CONTINUATION_HIGH, CONTINUATION_HIGH, CONTINUATION_HIGH, CONTINUATION_HIGH,
+        CONTINUATION_HIGH, CONTINUATION_HIGH, CONTINUATION_HIGH, CONTINUATION_HIGH,
+        CONTINUATION_HIGH, CONTINUATION_HIGH, CONTINUATION_HIGH, CONTINUATION_HIGH,
+        CONTINUATION_HIGH, CONTINUATION_HIGH, CONTINUATION_HIGH, CONTINUATION_HIGH,
+        CONTINUATION_HIGH, CONTINUATION_HIGH, CONTINUATION_HIGH, CONTINUATION_HIGH,
         // 1100_0000, 1100_0001, 192, 193
-        invalid, invalid,
+        INVALID, INVALID,
         // 1100_0010 - 1101_1111, 194 - 223
-        double_prefix, double_prefix, double_prefix, double_prefix,
-        double_prefix, double_prefix, double_prefix, double_prefix,
-        double_prefix, double_prefix, double_prefix, double_prefix,
-        double_prefix, double_prefix,
+        DOUBLE_PREFIX, DOUBLE_PREFIX, DOUBLE_PREFIX, DOUBLE_PREFIX,
+        DOUBLE_PREFIX, DOUBLE_PREFIX, DOUBLE_PREFIX, DOUBLE_PREFIX,
+        DOUBLE_PREFIX, DOUBLE_PREFIX, DOUBLE_PREFIX, DOUBLE_PREFIX,
+        DOUBLE_PREFIX, DOUBLE_PREFIX,
         // 1110_0000, 224
-        triple_check_overlong,
+        TRIPLE_CHECK_OVERLONG,
         // 1110_0001 - 1110_1100, 225 - 236
-        triple_prefix, triple_prefix, triple_prefix, triple_prefix,
-        triple_prefix, triple_prefix, triple_prefix, triple_prefix,
-        triple_prefix, triple_prefix, triple_prefix, triple_prefix,
+        TRIPLE_PREFIX, TRIPLE_PREFIX, TRIPLE_PREFIX, TRIPLE_PREFIX,
+        TRIPLE_PREFIX, TRIPLE_PREFIX, TRIPLE_PREFIX, TRIPLE_PREFIX,
+        TRIPLE_PREFIX, TRIPLE_PREFIX, TRIPLE_PREFIX, TRIPLE_PREFIX,
         // 1110_1101, 237
-        triple_check_overlong,
+        TRIPLE_CHECK_SURROGATE,
         // 1110_1110, 1110_1111, 238, 239,
-        triple_prefix, triple_prefix,
+        TRIPLE_PREFIX, TRIPLE_PREFIX,
         // 1111_0000, 240
-        quad_check_overlong,
+        QUAD_CHECK_OVERLONG,
         // 1111_0001 - 1111_0011, 241 - 243,
-        quad_prefix, quad_prefix, quad_prefix,
+        QUAD_PREFIX, QUAD_PREFIX, QUAD_PREFIX,
         // 1111_0100, 244
-        quad_check_too_large,
+        QUAD_CHECK_TOO_LARGE,
         // 1111_0101 - 1111_1111, 245 - 255
-        invalid
+        INVALID
 };
 // todo lookup table for state + category to next-state
