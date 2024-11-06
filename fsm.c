@@ -1,6 +1,19 @@
 #include "fsm.h"
 
 /*
+ *
+ * */
+const char VALID = 0;
+const char ONE_MORE = 12;
+const char TWO_MORE = 24;
+const char THREE_MORE = 36;
+const char CHECK_3_BYTE_OVERLONG = 48;
+const char CHECK_3_BYTE_SURROGATE = 60;
+const char CHECK_4_BYTE_OVERLONG = 72;
+const char CHECK_4_BYTE_TOO_LARGE = 84;
+const char ERROR = 96; // could split into types
+
+/*
 Bytes are classified as belonging to one of twelve possible categories.
   1. ascii, 0000_0000 - 0111_1111
   2. double-prefix, 1100_0010 - 1101_1111
@@ -94,4 +107,222 @@ const char category_table[256] = {
         INVALID, INVALID, INVALID, INVALID,
         INVALID, INVALID
 };
-// todo lookup table for state + category to next-state
+
+const char next_state[108] = {
+        // VALID + ASCII
+        VALID,
+        // VALID + DOUBLE_PREFIX
+        ONE_MORE,
+        // VALID + TRIPLE_PREFIX
+        TWO_MORE,
+        // VALID + QUAD_PREFIX
+        THREE_MORE,
+        // VALID + TRIPLE_CHECK_OVERLONG
+        CHECK_3_BYTE_OVERLONG,
+        // VALID + TRIPLE_CHECK_SURROGATE
+        CHECK_3_BYTE_SURROGATE,
+        // VALID + QUAD_CHECK_OVERLONG
+        CHECK_4_BYTE_OVERLONG,
+        // VALID + QUAD_CHECK_TOO_LARGE
+        CHECK_4_BYTE_TOO_LARGE,
+        // VALID + CONTINUATION_LOW
+        ERROR,
+        // VALID + CONTINUATION_MID
+        ERROR,
+        // VALID + CONTINUATION_HIGH
+        ERROR,
+        // VALID + INVALID
+        ERROR,
+        // ONE_MORE + ASCII
+        ERROR,
+        // ONE_MORE + DOUBLE_PREFIX
+        ERROR,
+        // ONE_MORE + TRIPLE_PREFIX
+        ERROR,
+        // ONE_MORE + QUAD_PREFIX
+        ERROR,
+        // ONE_MORE + TRIPLE_CHECK_OVERLONG
+        ERROR,
+        // ONE_MORE + TRIPLE_CHECK_SURROGATE
+        ERROR,
+        // ONE_MORE + QUAD_CHECK_OVERLONG
+        ERROR,
+        // ONE_MORE + QUAD_CHECK_TOO_LARGE
+        ERROR,
+        // ONE_MORE + CONTINUATION_LOW
+        VALID,
+        // ONE_MORE + CONTINUATION_MID
+        VALID,
+        // ONE_MORE + CONTINUATION_HIGH
+        VALID,
+        // ONE_MORE + INVALID
+        ERROR,
+        // TWO_MORE + ASCII
+        ERROR,
+        // TWO_MORE + DOUBLE_PREFIX
+        ERROR,
+        // TWO_MORE + TRIPLE_PREFIX
+        ERROR,
+        // TWO_MORE + QUAD_PREFIX
+        ERROR,
+        // TWO_MORE + TRIPLE_CHECK_OVERLONG
+        ERROR,
+        // TWO_MORE + TRIPLE_CHECK_SURROGATE
+        ERROR,
+        // TWO_MORE + QUAD_CHECK_OVERLONG
+        ERROR,
+        // TWO_MORE + QUAD_CHECK_TOO_LARGE
+        ERROR,
+        // TWO_MORE + CONTINUATION_LOW
+        ONE_MORE,
+        // TWO_MORE + CONTINUATION_MID
+        ONE_MORE,
+        // TWO_MORE + CONTINUATION_HIGH
+        ONE_MORE,
+        // TWO_MORE + INVALID
+        ERROR,
+        // THREE_MORE + ASCII
+        ERROR,
+        // THREE_MORE + DOUBLE_PREFIX
+        ERROR,
+        // THREE_MORE + TRIPLE_PREFIX
+        ERROR,
+        // THREE_MORE + QUAD_PREFIX
+        ERROR,
+        // THREE_MORE + TRIPLE_CHECK_OVERLONG
+        ERROR,
+        // THREE_MORE + TRIPLE_CHECK_SURROGATE
+        ERROR,
+        // THREE_MORE + QUAD_CHECK_OVERLONG
+        ERROR,
+        // THREE_MORE + QUAD_CHECK_TOO_LARGE
+        ERROR,
+        // THREE_MORE + CONTINUATION_LOW
+        TWO_MORE,
+        // THREE_MORE + CONTINUATION_MID
+        TWO_MORE,
+        // THREE_MORE + CONTINUATION_HIGH
+        TWO_MORE,
+        // THREE_MORE + INVALID
+        ERROR,
+        // CHECK_3_BYTE_OVERLONG + ASCII
+        ERROR,
+        // CHECK_3_BYTE_OVERLONG + DOUBLE_PREFIX
+        ERROR,
+        // CHECK_3_BYTE_OVERLONG + TRIPLE_PREFIX
+        ERROR,
+        // CHECK_3_BYTE_OVERLONG + QUAD_PREFIX
+        ERROR,
+        // CHECK_3_BYTE_OVERLONG + TRIPLE_CHECK_OVERLONG
+        ERROR,
+        // CHECK_3_BYTE_OVERLONG + TRIPLE_CHECK_SURROGATE
+        ERROR,
+        // CHECK_3_BYTE_OVERLONG + QUAD_CHECK_OVERLONG
+        ERROR,
+        // CHECK_3_BYTE_OVERLONG + QUAD_CHECK_TOO_LARGE
+        ERROR,
+        // CHECK_3_BYTE_OVERLONG + CONTINUATION_LOW
+        ERROR,
+        // CHECK_3_BYTE_OVERLONG + CONTINUATION_MID
+        ERROR,
+        // CHECK_3_BYTE_OVERLONG + CONTINUATION_HIGH
+        ONE_MORE,
+        // CHECK_3_BYTE_OVERLONG + INVALID
+        ERROR,
+        // CHECK_3_BYTE_SURROGATE + ASCII
+        ERROR,
+        // CHECK_3_BYTE_SURROGATE + DOUBLE_PREFIX
+        ERROR,
+        // CHECK_3_BYTE_SURROGATE + TRIPLE_PREFIX
+        ERROR,
+        // CHECK_3_BYTE_SURROGATE + QUAD_PREFIX
+        ERROR,
+        // CHECK_3_BYTE_SURROGATE + TRIPLE_CHECK_OVERLONG
+        ERROR,
+        // CHECK_3_BYTE_SURROGATE + TRIPLE_CHECK_SURROGATE
+        ERROR,
+        // CHECK_3_BYTE_SURROGATE + QUAD_CHECK_OVERLONG
+        ERROR,
+        // CHECK_3_BYTE_SURROGATE + QUAD_CHECK_TOO_LARGE
+        ERROR,
+        // CHECK_3_BYTE_SURROGATE + CONTINUATION_LOW
+        ONE_MORE,
+        // CHECK_3_BYTE_SURROGATE + CONTINUATION_MID
+        ONE_MORE,
+        // CHECK_3_BYTE_SURROGATE + CONTINUATION_HIGH
+        ERROR,
+        // CHECK_3_BYTE_SURROGATE + INVALID
+        ERROR,
+        // CHECK_4_BYTE_OVERLONG + ASCII
+        ERROR,
+        // CHECK_4_BYTE_OVERLONG + DOUBLE_PREFIX
+        ERROR,
+        // CHECK_4_BYTE_OVERLONG + TRIPLE_PREFIX
+        ERROR,
+        // CHECK_4_BYTE_OVERLONG + QUAD_PREFIX
+        ERROR,
+        // CHECK_4_BYTE_OVERLONG + TRIPLE_CHECK_OVERLONG
+        ERROR,
+        // CHECK_4_BYTE_OVERLONG + TRIPLE_CHECK_SURROGATE
+        ERROR,
+        // CHECK_4_BYTE_OVERLONG + QUAD_CHECK_OVERLONG
+        ERROR,
+        // CHECK_4_BYTE_OVERLONG + QUAD_CHECK_TOO_LARGE
+        ERROR,
+        // CHECK_4_BYTE_OVERLONG + CONTINUATION_LOW
+        ERROR,
+        // CHECK_4_BYTE_OVERLONG + CONTINUATION_MID
+        TWO_MORE,
+        // CHECK_4_BYTE_OVERLONG + CONTINUATION_HIGH
+        TWO_MORE,
+        // CHECK_4_BYTE_OVERLONG + INVALID
+        ERROR,
+        // CHECK_4_BYTE_TOO_LARGE + ASCII
+        ERROR,
+        // CHECK_4_BYTE_TOO_LARGE + DOUBLE_PREFIX
+        ERROR,
+        // CHECK_4_BYTE_TOO_LARGE + TRIPLE_PREFIX
+        ERROR,
+        // CHECK_4_BYTE_TOO_LARGE + QUAD_PREFIX
+        ERROR,
+        // CHECK_4_BYTE_TOO_LARGE + TRIPLE_CHECK_OVERLONG
+        ERROR,
+        // CHECK_4_BYTE_TOO_LARGE + TRIPLE_CHECK_SURROGATE
+        ERROR,
+        // CHECK_4_BYTE_TOO_LARGE + QUAD_CHECK_OVERLONG
+        ERROR,
+        // CHECK_4_BYTE_TOO_LARGE + QUAD_CHECK_TOO_LARGE
+        ERROR,
+        // CHECK_4_BYTE_TOO_LARGE + CONTINUATION_LOW
+        TWO_MORE,
+        // CHECK_4_BYTE_TOO_LARGE + CONTINUATION_MID
+        ERROR,
+        // CHECK_4_BYTE_TOO_LARGE + CONTINUATION_HIGH
+        ERROR,
+        // CHECK_4_BYTE_TOO_LARGE + INVALID
+        ERROR,
+        // ERROR + ASCII
+        ERROR,
+        // ERROR + DOUBLE_PREFIX
+        ERROR,
+        // ERROR + TRIPLE_PREFIX
+        ERROR,
+        // ERROR + QUAD_PREFIX
+        ERROR,
+        // ERROR + TRIPLE_CHECK_OVERLONG
+        ERROR,
+        // ERROR + TRIPLE_CHECK_SURROGATE
+        ERROR,
+        // ERROR + QUAD_CHECK_OVERLONG
+        ERROR,
+        // ERROR + QUAD_CHECK_TOO_LARGE
+        ERROR,
+        // ERROR + CONTINUATION_LOW
+        ERROR,
+        // ERROR + CONTINUATION_MID
+        ERROR,
+        // ERROR + CONTINUATION_HIGH
+        ERROR,
+        // ERROR + INVALID
+        ERROR,
+};
