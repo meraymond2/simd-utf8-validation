@@ -24,6 +24,7 @@ void debug_vec(__m128i v) {
 
 __m128i classify(__m128i input, __m128i previous_input) {
     __m128i prev1 = _mm_alignr_epi8(input, previous_input, 15);
+
     return prev1;
 }
 
@@ -31,7 +32,6 @@ bool lookup_validate(const char *bytes, size_t len) {
     size_t l = len - (len % 16);
     size_t i = 0;
     __m128i v0 = _mm_load_si128((const __m128i *) zeros);
-
 
     // debug
     __m128i v1 = _mm_load_si128((const __m128i *) bytes + i);
