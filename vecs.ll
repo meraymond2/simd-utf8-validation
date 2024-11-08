@@ -1,42 +1,32 @@
-target triple = "x86_64-unknown-linux-gnu"
-
 ; https://llvm.org/docs/LangRef.html#t-vector
 declare void @printf(ptr, ...)
-
-@zeros = private unnamed_addr constant <16 x i8> <i8 0, i8 0, i8 0, i8 0, i8 0, i8 0, i8 0, i8 0, i8 0, i8 0, i8 0, i8 0, i8 0, i8 0, i8 0, i8 0 >
-
-; First byte high nibble
-@table_1 = private unnamed_addr constant <16 x i8> <
-    i8 1, i8 1, i8 1, i8 1, i8 1, i8 1, i8 1, i8 1,
-    i8 128, i8 128, i8 128, i8 128, i8 6, i8 2, i8 26, i8 98
->
-; First byte low nibble
-@table_2 = private unnamed_addr constant <16 x i8> <
-    i8 183, i8 135, i8 131, i8 131, i8 195, i8 227, i8 227, i8 227,
-    i8 227, i8 227, i8 227, i8 227, i8 227, i8 235, i8 227, i8 227
->
-; Second byte high nibble
-@table_3 = private unnamed_addr constant <16 x i8> <
-    i8 2, i8 2, i8 2, i8 2, i8 2, i8 2, i8 2, i8 2,
-    i8 181, i8 213, i8 205, i8 205, i8 2, i8 2, i8 2, i8 2
->
 
 @debug.num = private unnamed_addr constant [4 x i8] c"%d \00"
 @debug.nl = private unnamed_addr constant [2 x i8] c"\0a\00"
 
-define <16 x i8> @load_vec (ptr %bytes) {
-    %1 = load i128, i128* %bytes
-    %2 = bitcast i28 %1 to <16 x i8>
-    ret %2
+define <16 x i8> @vec_shift_into (<16 x i8> %prev, <16 x i8> %input) {
+    %palignr_ed = shufflevector <16 x i8> %prev, <16 x i8> %input, <16 x i32> <i32 15, i32 16, i32 17, i32 18, i32 19, i32 20, i32 21, i32 22, i32 23, i32 24, i32 25, i32 26, i32 27, i32 28, i32 29, i32 30>
+    ret <16 x i8> %palignr_ed
 }
 
-define i1 @lookup_validate (ptr %bytes, i64 %len) {
-  %vec = load <16 x i8>, <16 x i8>* @zeros
-  call void @debug_vec(<16 x i8> %vec)
-  ret i1 false
+define <16 x i8> @vec_shr (<16 x i8> %v, <16 x i8> %n) {
+    %shifted = lshr <16 x i8> %v, %n
+    ret <16 x i8> %shifted
 }
 
-define void @debug_vec (<16 x i8> %vec) {
+define <16 x i8> @vec_bitand (<16 x i8> %v, <16 x i8> %n) {
+    %masked = and <16 x i8> %v, %n
+    ret <16 x i8> %masked
+}
+
+declare i8 @llvm.vector.reduce.or.v4i8(<16 x i8> %vec)
+define i8 @vec_reduce_or  (<16 x i8> %v) {
+    %reduced = call i8 @llvm.vector.reduce.or.v4i8(<16 x i8> %v)
+    ret i8 %reduced
+}
+
+
+define void @vec_debug (<16 x i8> %vec) {
     %1 = extractelement <16 x i8> %vec, i32 0
     call void (ptr, ...) @printf(ptr @debug.num, i8 %1)
     %2 = extractelement <16 x i8> %vec, i32 1

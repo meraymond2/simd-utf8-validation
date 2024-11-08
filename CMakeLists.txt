@@ -11,6 +11,11 @@ add_executable(utf8_validation
         branchy.h
         fsm.c
         fsm.h
-        lookup.ll
+        lookup.c
         lookup.h
+)
+
+target_link_libraries(
+        utf8_validation
+        ${CMAKE_SOURCE_DIR}/vecs.o
 )
