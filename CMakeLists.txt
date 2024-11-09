@@ -3,7 +3,8 @@ project(utf8_validation C)
 
 set(CMAKE_C_STANDARD 17)
 
-add_compile_options(-mavx512f)
+add_compile_options(-mavx2)
+add_compile_options(-O3)
 
 add_executable(utf8_validation
         main.c
@@ -13,9 +14,4 @@ add_executable(utf8_validation
         fsm.h
         lookup.c
         lookup.h
-)
-
-target_link_libraries(
-        utf8_validation
-        ${CMAKE_SOURCE_DIR}/vecs.o
 )
