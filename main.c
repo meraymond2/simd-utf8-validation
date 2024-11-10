@@ -6,10 +6,8 @@
 #include "fsm.h"
 #include "lookup.h"
 
-const char *filename = "/home/michael/dev/jpp/citylots.json";
-//const char *filename = "/home/michael/dev/utf8-validation/branchy.c";
-
-int main(void) {
+int main(int argc, char **argv) {
+    char* filename = argv[1];
     struct stat sb;
     stat(filename, &sb);
     size_t filesize = sb.st_size;
