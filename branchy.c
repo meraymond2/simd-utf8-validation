@@ -5,7 +5,7 @@ bool is_continuation(unsigned char byte) {
     return (byte >> 6) == 2;
 }
 
-bool branchy_validate(const char *bytes, size_t len) {
+bool branchy_validate(const unsigned char *bytes, size_t len) {
     size_t i = 0;
     while (i < len) {
         unsigned char b = bytes[i];
@@ -17,7 +17,7 @@ bool branchy_validate(const char *bytes, size_t len) {
             // two-byte sequence, should have one continuation byte
             // eof, missing next byte
             if (i == len) return false;
-            char next = bytes[i + 1];
+            unsigned char next = bytes[i + 1];
             // missing continuation
             if (!is_continuation(next)) return false;
             // ok

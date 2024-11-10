@@ -7,27 +7,41 @@
 #include "lookup.h"
 
 int main(int argc, char **argv) {
-    char* filename = argv[1];
+    char *filename = argv[1];
     struct stat sb;
     stat(filename, &sb);
     size_t filesize = sb.st_size;
-    char *buf = malloc(filesize);
+    char unsigned *buf = malloc(filesize);
     FILE *input = fopen(filename, "r");
     fread(buf, 1, filesize, input);
 
-//    const char buf[16] = {0x0, 0x0, 0x0, 0x0, 0x0, 0x39, 0xC3, 0xA7, 0xE9, 0x8F, 0xA1, 0xF0, 0x9F, 0x98, 0x80, 0x00};
-//    size_t filesize = 16;
+    bool is_valid;
+    clock_t start;
+    clock_t end;
+    float seconds;
 
-    clock_t start = clock();
-//    bool is_valid = branchy_validate(buf, filesize);
-//    bool is_valid = fsm_validate(buf, filesize);
-    bool is_valid = lookup_validate(buf, filesize);
-    clock_t end = clock();
-    float seconds = (float) (end - start) / CLOCKS_PER_SEC;
+    start = clock();
+    is_valid = branchy_validate(buf, filesize);
+    end = clock();
+    seconds = (float) (end - start) / CLOCKS_PER_SEC;
+    printf("Branchy: ");
+    printf("is valid: %s\n", is_valid ? "true" : "false");
+    printf("Took: %.8lf\n", seconds);
 
-    printf("Is valid: %s\n", is_valid ? "true" : "false");
-    printf("Took: %.8lf", seconds);
+    start = clock();
+    is_valid = fsm_validate(buf, filesize);
+    end = clock();
+    seconds = (float) (end - start) / CLOCKS_PER_SEC;
+    printf("FSM: ");
+    printf("is valid: %s\n", is_valid ? "true" : "false");
+    printf("Took: %.8lf\n", seconds);
 
-
+    start = clock();
+    is_valid = lookup_validate(buf, filesize);
+    end = clock();
+    seconds = (float) (end - start) / CLOCKS_PER_SEC;
+    printf("Lookup: ");
+    printf("is valid: %s\n", is_valid ? "true" : "false");
+    printf("Took: %.8lf\n", seconds);
     return 0;
 }

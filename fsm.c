@@ -328,7 +328,7 @@ const char next_state[108] = {
         ERROR,
 };
 
-size_t index_of_leading_byte(const char *bytes, size_t len, size_t start) {
+size_t index_of_leading_byte(const unsigned char *bytes, size_t len, size_t start) {
     size_t i = start;
     while (i < len) {
         unsigned char b = bytes[i];
@@ -341,7 +341,7 @@ size_t index_of_leading_byte(const char *bytes, size_t len, size_t start) {
     return i;
 }
 
-bool fsm_validate(const char *bytes, size_t len) {
+bool fsm_validate(const unsigned char *bytes, size_t len) {
     if (len < 32) {
         unsigned char state = VALID;
         size_t i = 0;

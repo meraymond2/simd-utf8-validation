@@ -4,6 +4,6 @@
 #include <stdbool.h>
 #include <stdlib.h>
 
-bool lookup_validate(const char *bytes, size_t len);
+bool lookup_validate(const unsigned char *bytes, size_t len);
 
 #endif //UTF8_VALIDATION_LOOKUP_H

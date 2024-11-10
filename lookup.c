@@ -15,7 +15,7 @@ void print_vec(__m128i v) {
 
 #define shr(v) _mm_and_si128(_mm_srli_epi16(v, 4), high_mask_vec)
 
-bool lookup_validate(const char *bytes, size_t len) {
+bool lookup_validate(const unsigned char *bytes, size_t len) {
     size_t l = len - (len % 16);
     size_t i = 0;
     __m128i v0 = _mm_set1_epi8(0);
@@ -33,7 +33,7 @@ bool lookup_validate(const char *bytes, size_t len) {
                                   213, 181, 2, 2, 2, 2,
                                   2, 2, 2, 2);
 
-    bool acc = true;
+    __m128i acc = _mm_set1_epi8(0);
 
     while (i < l) {
         // TODO: document this first part
@@ -43,7 +43,7 @@ bool lookup_validate(const char *bytes, size_t len) {
         __m128i byte_1_low = _mm_shuffle_epi8(table2, _mm_and_si128(prev1, low_mask_vec));
         __m128i byte_2_high = _mm_shuffle_epi8(table3, shr(v1));
 
-        volatile __m128i classification = _mm_and_si128(_mm_and_si128(byte_1_high, byte_1_low), byte_2_high);
+        __m128i classification = _mm_and_si128(_mm_and_si128(byte_1_high, byte_1_low), byte_2_high);
         __m128i prev2 = _mm_alignr_epi8(v1, v0, 14);
         __m128i prev3 = _mm_alignr_epi8(v1, v0, 13);
 
@@ -74,24 +74,37 @@ bool lookup_validate(const char *bytes, size_t len) {
         // will stay as 1.
         // That leaves us with a vector of bits that should all be 0.
         __m128i final = _mm_xor_si128(expected_continuations, classification);
-        // Check that they're all zero
-        // TODO: this is very slow, can this be sped up?
-        acc = acc && _mm_testz_si128(final, final);
+        // Or any set bits into the acc
+        acc = _mm_or_si128(acc, final);
         i += 16;
         v0 = v1;
     }
 
-//    char* buf[16] = { 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 };
-//    memcpy(buf, &bytes[i], len - l);
-//
-//    __m128i v1 = _mm_load_si128((const __m128i *) &bytes[i]);
-//    __m128i prev1 = _mm_alignr_epi8(v1, v0, 15);
-//    __m128i byte_1_high = _mm_shuffle_epi8(table1, shr(prev1));
-//    __m128i byte_1_low = _mm_shuffle_epi8(table2, _mm_and_si128(prev1, low_mask_vec));
-//    __m128i byte_2_high = _mm_shuffle_epi8(table3, shr(v1));
-//    volatile __m128i classification = _mm_and_si128(_mm_and_si128(byte_1_high, byte_1_low), byte_2_high);
-//
-//    // TODO: check EOF
+    // Check that end of bytes are valid utf-8.
+    bool last_ok = bytes[len - 1] < (const unsigned char)0xc0;
+    bool second_last_ok = bytes[len - 2] < (const unsigned char)0xe0;
+    bool third_last_ok = bytes[len - 3] < (const unsigned char)0xf0;
+    if (!(last_ok && second_last_ok && third_last_ok)) return false;
 
-    return acc;
+
+    char buf[16] = {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0};
+    memcpy(buf, &bytes[i], len - l);
+
+    __m128i v1 = _mm_load_si128((const __m128i *) &buf);
+    __m128i prev1 = _mm_alignr_epi8(v1, v0, 15);
+    __m128i byte_1_high = _mm_shuffle_epi8(table1, shr(prev1));
+    __m128i byte_1_low = _mm_shuffle_epi8(table2, _mm_and_si128(prev1, low_mask_vec));
+    __m128i byte_2_high = _mm_shuffle_epi8(table3, shr(v1));
+
+    __m128i classification = _mm_and_si128(_mm_and_si128(byte_1_high, byte_1_low), byte_2_high);
+    __m128i prev2 = _mm_alignr_epi8(v1, v0, 14);
+    __m128i prev3 = _mm_alignr_epi8(v1, v0, 13);
+    __m128i gte_224 = _mm_subs_epu8(prev2, _mm_set1_epi8(96)); // 0110_0000
+    __m128i gte_240 = _mm_subs_epu8(prev3, _mm_set1_epi8(112)); // 0111_0000
+    __m128i combined = _mm_or_si128(gte_224, gte_240);
+    __m128i expected_continuations = _mm_and_si128(combined, _mm_set1_epi8(0x80));
+    __m128i final = _mm_xor_si128(expected_continuations, classification);
+    acc = _mm_or_si128(acc, final);
+
+    return _mm_testz_si128(acc, acc);
 }
