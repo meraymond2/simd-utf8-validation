@@ -15,6 +15,9 @@ int main(int argc, char **argv) {
     FILE *input = fopen(filename, "r");
     fread(buf, 1, filesize, input);
 
+//    const char buf[16] = {0x0, 0x0, 0x0, 0x0, 0x0, 0x39, 0xC3, 0xA7, 0xE9, 0x8F, 0xA1, 0xF0, 0x9F, 0x98, 0x80, 0x00};
+//    size_t filesize = 16;
+
     clock_t start = clock();
 //    bool is_valid = branchy_validate(buf, filesize);
 //    bool is_valid = fsm_validate(buf, filesize);
