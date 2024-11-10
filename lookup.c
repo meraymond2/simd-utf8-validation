@@ -80,15 +80,14 @@ bool lookup_validate(const unsigned char *bytes, size_t len) {
         v0 = v1;
     }
 
-    // Check that end of bytes are valid utf-8.
-    bool last_ok = bytes[len - 1] < (const unsigned char)0xc0;
-    bool second_last_ok = bytes[len - 2] < (const unsigned char)0xe0;
-    bool third_last_ok = bytes[len - 3] < (const unsigned char)0xf0;
-    if (!(last_ok && second_last_ok && third_last_ok)) return false;
-
 
     char buf[16] = {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0};
     memcpy(buf, &bytes[i], len - l);
+    // Check that end of bytes are valid utf-8.
+    bool last_ok = buf[15] < (const unsigned char)0xc0;
+    bool second_last_ok = buf[14] < (const unsigned char)0xe0;
+    bool third_last_ok = buf[13] < (const unsigned char)0xf0;
+    if (!(last_ok && second_last_ok && third_last_ok)) return false;
 
     __m128i v1 = _mm_load_si128((const __m128i *) &buf);
     __m128i prev1 = _mm_alignr_epi8(v1, v0, 15);
