@@ -14,4 +14,6 @@ add_executable(utf8_validation
         fsm.h
         lookup.c
         lookup.h
+        lookup256.c
+        lookup256.h
 )

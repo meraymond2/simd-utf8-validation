@@ -5,6 +5,7 @@
 #include "branchy.h"
 #include "fsm.h"
 #include "lookup.h"
+#include "lookup256.h"
 
 int main(int argc, char **argv) {
     char *filename = argv[1];
@@ -41,6 +42,14 @@ int main(int argc, char **argv) {
     end = clock();
     seconds = (float) (end - start) / CLOCKS_PER_SEC;
     printf("Lookup: ");
+    printf("is valid: %s\n", is_valid ? "true" : "false");
+    printf("Took: %.8lf\n", seconds);
+
+    start = clock();
+    is_valid = lookup256_validate(buf, filesize);
+    end = clock();
+    seconds = (float) (end - start) / CLOCKS_PER_SEC;
+    printf("Lookup 256: ");
     printf("is valid: %s\n", is_valid ? "true" : "false");
     printf("Took: %.8lf\n", seconds);
     return 0;
