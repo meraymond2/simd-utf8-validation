@@ -24,8 +24,10 @@ bool lookup256_validate(const unsigned char *bytes, size_t len) {
     // First byte high nibble
     __m256i table1 = _mm256_set_epi8(
             98, 26, 2, 6, 128, 128, 128, 128, 1, 1, 1, 1, 1, 1, 1, 1,
-            0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0
+            98, 26, 2, 6, 128, 128, 128, 128, 1, 1, 1, 1, 1, 1, 1, 1
+//            0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0
     );
+    print_vec256(table1);
     // First byte low nibble
     __m256i table2 = _mm256_set_epi8(
             227, 227, 235, 227,
@@ -40,9 +42,12 @@ bool lookup256_validate(const unsigned char *bytes, size_t len) {
                                      0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0);
     __m256i acc = _mm256_set1_epi8(0);
 
+        __m256i x = _mm256_loadu_si256((const __m256i *) (bytes + i));
+    print_vec256(x);
+    print_vec256(_mm256_shuffle_epi8(table1, x));
     while (i < l) {
         // TODO: document this first part
-        __m256i v1 = _mm256_loadu_si256((const __m256i *) &bytes[i]);
+        __m256i v1 = _mm256_loadu_si256((const __m256i *) (bytes + i));
         __m256i prev1 = _mm256_alignr_epi8(v1, v0, 31);
         __m256i byte_1_high = _mm256_shuffle_epi8(table1, shr(prev1));
         __m256i byte_1_low = _mm256_shuffle_epi8(table2, _mm256_and_si256(prev1, low_mask_vec));
