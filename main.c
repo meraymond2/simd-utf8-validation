@@ -39,7 +39,7 @@ int main(int argc, char **argv) {
 //    printf("Took: %.8lf\n", seconds);
 //
 //    start = clock();
-    is_valid = lookup_validate(buf, filesize);
+//    is_valid = lookup_validate(buf, filesize);
 //    end = clock();
 //    seconds = (float) (end - start) / CLOCKS_PER_SEC;
 //    printf("Lookup: ");
@@ -47,7 +47,7 @@ int main(int argc, char **argv) {
 //    printf("Took: %.8lf\n", seconds);
 //
 //    start = clock();
-    is_valid = lookup256_validate(buf, filesize);
+//    is_valid = lookup256_validate(buf, filesize);
 //    end = clock();
 //    seconds = (float) (end - start) / CLOCKS_PER_SEC;
 //    printf("Lookup 256: ");

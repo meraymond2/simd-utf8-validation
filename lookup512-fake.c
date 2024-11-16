@@ -22,7 +22,7 @@ void print_vec512(Simd512 v) {
 }
 
 
-#define simd512_new(a, b) (Simd512){a, b};
+#define simd512_new(a, b) (Simd512){a, b}
 #define simd512_load(bytes) simd512_new(_mm256_loadu_si256((const __m256i *) bytes), _mm256_loadu_si256((const __m256i *) (bytes + 32)))
 #define simd512_set1(n) simd512_new(_mm256_set1_epi8(n), _mm256_set1_epi8(n))
 #define simd512_set(\
@@ -47,7 +47,9 @@ void print_vec512(Simd512 v) {
          n17, n18, n19, n20, n21, n22, n23, n24, \
          n25, n26, n27, n28, n29, n30, n31 \
     ))
-//#define shr(v) _mm256_and_si256(_mm256_srli_epi16(v, 4), high_mask_vec)
+#define simd512_shuf(lookup, v) simd512_new(_mm256_shuffle_epi8(lookup.a, v.a), _mm256_shuffle_epi8(lookup.b, v.b))
+#define simd512_shr(v, n) simd512_new(_mm256_and_si256(_mm256_srli_epi16(v.a, n), _mm256_set1_epi16(0XF0F)), _mm256_and_si256(_mm256_srli_epi16(v.b, n), _mm256_set1_epi16(0XF0F)))
+#define simd512_and(x, y) simd512_new(_mm256_and_si256(x.a, y.a), _mm256_and_si256(x.b, y.b))
 
 //bool lookup256_validate(const unsigned char *bytes, size_t len) {
 //    size_t l = len - (len % 32);
@@ -151,34 +153,52 @@ void print_vec512(Simd512 v) {
 
 
 bool lookup512_fake_validate(const unsigned char *bytes, size_t len) {
-    Simd512 v1 = simd512_load(bytes);
-
-
     size_t l = len - (len % 64);
     size_t i = 0;
     Simd512 v0 = simd512_set1(0);
-    Simd512 low_mask_vec = simd512_set1(15);
     // First byte high nibble
     Simd512 table1 = simd512_set(
             1, 1, 1, 1, 1, 1, 1, 1, 128, 128, 128, 128, 6, 2, 26, 98,
-            0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
-            0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
-            0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0
+            1, 1, 1, 1, 1, 1, 1, 1, 128, 128, 128, 128, 6, 2, 26, 98,
+            1, 1, 1, 1, 1, 1, 1, 1, 128, 128, 128, 128, 6, 2, 26, 98,
+            1, 1, 1, 1, 1, 1, 1, 1, 128, 128, 128, 128, 6, 2, 26, 98
     );
-//    // First byte low nibble
-//    __m256i table2 = _mm256_set_epi8(
-//            227, 227, 235, 227,
-//            227, 227, 227, 227,
-//            227, 227, 227, 195,
-//            131, 131, 135, 183,
-//            0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0);
-//    // Second byte high nibble
-//    __m256i table3 = _mm256_set_epi8(2, 2, 2, 2, 205, 205,
-//                                     213, 181, 2, 2, 2, 2,
-//                                     2, 2, 2, 2,
-//                                     0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0);
-//    __m256i acc = _mm256_set1_epi8(0);
+    Simd512 table2 = simd512_set(
+            227, 227, 235, 227, 227, 227, 227, 227, 227, 227, 227, 195, 131, 131, 135, 183,
+            227, 227, 235, 227, 227, 227, 227, 227, 227, 227, 227, 195, 131, 131, 135, 183,
+            227, 227, 235, 227, 227, 227, 227, 227, 227, 227, 227, 195, 131, 131, 135, 183,
+            227, 227, 235, 227, 227, 227, 227, 227, 227, 227, 227, 195, 131, 131, 135, 183
+    );
+    Simd512 table3 = simd512_set(
+            2, 2, 2, 2, 205, 205, 213, 181, 2, 2, 2, 2, 2, 2, 2, 2,
+            2, 2, 2, 2, 205, 205, 213, 181, 2, 2, 2, 2, 2, 2, 2, 2,
+            2, 2, 2, 2, 205, 205, 213, 181, 2, 2, 2, 2, 2, 2, 2, 2,
+            2, 2, 2, 2, 205, 205, 213, 181, 2, 2, 2, 2, 2, 2, 2, 2
+    );
 
-    print_vec512(table1);
+    Simd512 acc = simd512_set1(0);
+    Simd512 low_mask = simd512_set1(15);
+
+    while (i < l) {
+        Simd512 v1 = simd512_load((bytes + i));
+        Simd512 prev1 = v1; // todo: _mm256_alignr_epi8(v1, v0, 31);
+        Simd512 byte_1_high = simd512_shuf(table1, simd512_shr(prev1, 4));
+        Simd512 byte_1_low = simd512_shuf(table2, simd512_and(prev1, low_mask));
+        Simd512 byte_2_high = simd512_shuf(table3, simd512_shr(v1, 4));
+//    }
+        Simd512 classification = simd512_and(simd512_and(byte_1_high, byte_1_low), byte_2_high);
+//
+        Simd512 prev2 = v1; // todo: _mm256_alignr_epi8(v1, v0, 30);
+        Simd512 prev3 = v1; // todo: _mm256_alignr_epi8(v1, v0, 29);
+
+        // todo: pick up here with the 3-4 byte checks
+        acc = classification;
+
+        i += 64;
+        v0 = v1;
+    }
+    printf("%d\n", i);
+    print_vec512(acc);
+    print_vec512(v0);
     return true;
 }

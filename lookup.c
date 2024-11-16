@@ -35,15 +35,6 @@ bool lookup_validate(const unsigned char *bytes, size_t len) {
 
     __m128i acc = _mm_set1_epi8(0);
 
-    __m128i a = _mm_load_si128((const __m128i *) bytes);
-    __m128i b = _mm_load_si128((const __m128i *) (bytes + 16));
-    print_vec(table1);
-    print_vec(a);
-    print_vec(b);
-    print_vec(_mm_shuffle_epi8(table1, a));
-    print_vec(_mm_shuffle_epi8(table1, b));
-    printf("\n");
-
     while (i < l) {
         // TODO: document this first part
         __m128i v1 = _mm_load_si128((const __m128i *) &bytes[i]);
