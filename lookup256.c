@@ -38,6 +38,13 @@ bool lookup256_validate(const unsigned char *bytes, size_t len) {
     );
     __m256i acc = _mm256_set1_epi8(0);
 
+        __m256i vv1 = _mm256_loadu_si256((const __m256i *) (bytes + i));
+    print_vec256(vv1);
+    // todo: fix this!
+    print_vec256(
+            _mm256_alignr_epi8(vv1, _mm256_permute2x128_si256(v0, vv1, 0x21), 16 - 1)
+            );
+    print_vec256(_mm256_alignr_epi8(vv1, v0, 0x21));
     while (i < l) {
         // TODO: document this first part
         __m256i v1 = _mm256_loadu_si256((const __m256i *) (bytes + i));
