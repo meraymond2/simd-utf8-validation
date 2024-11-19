@@ -102,7 +102,7 @@ bool lookup256_validate(const unsigned char *bytes, size_t len) {
     bool third_last_ok = buf[29] < (const unsigned char) 0xf0;
     if (!(last_ok && second_last_ok && third_last_ok)) return false;
 
-    __m256i v1 = _mm256_loadu_si256((const __m256i *) &bytes[i]);
+    __m256i v1 = _mm256_loadu_si256((const __m256i *) &buf);
     __m256i prev1 = _mm256_alignr_epi8(v1, v0, 31);
     __m256i byte_1_high = _mm256_shuffle_epi8(table1, shr(prev1));
     __m256i byte_1_low = _mm256_shuffle_epi8(table2, _mm256_and_si256(prev1, low_mask_vec));

@@ -50,12 +50,16 @@ void print_vec512(Simd512 v) {
 #define simd512_shuf(lookup, v) simd512_new(_mm256_shuffle_epi8(lookup.a, v.a), _mm256_shuffle_epi8(lookup.b, v.b))
 #define simd512_shr(v, n) simd512_new(_mm256_and_si256(_mm256_srli_epi16(v.a, n), _mm256_set1_epi16(0XF0F)), _mm256_and_si256(_mm256_srli_epi16(v.b, n), _mm256_set1_epi16(0XF0F)))
 #define simd512_and(x, y) simd512_new(_mm256_and_si256(x.a, y.a), _mm256_and_si256(x.b, y.b))
-
+#define simd512_testz(xs) _mm256_testz_si256(xs.a, xs.a) && _mm256_testz_si256(xs.b, xs.b)
 
 #define simd512_palingr(xs, ys, n) simd512_new( \
   _mm256_alignr_epi8(xs.a, _mm256_permute2x128_si256(ys.b, xs.a, 0x21), 16 - n), \
   _mm256_alignr_epi8(xs.b, _mm256_permute2x128_si256(xs.a, xs.b, 0x21), 16 - n)  \
 )
+
+#define simd512_subsat(xs, ys) simd512_new( _mm256_subs_epu8(xs.a, ys.a), _mm256_subs_epu8(xs.b, ys.b) )
+#define simd512_or(xs, ys) simd512_new( _mm256_or_si256(xs.a, ys.a), _mm256_or_si256(xs.b, ys.b) )
+#define simd512_xor(xs, ys) simd512_new( _mm256_xor_si256(xs.a, ys.a), _mm256_xor_si256(xs.b, ys.b) )
 
 bool lookup512_fake_validate(const unsigned char *bytes, size_t len) {
     size_t l = len - (len % 64);
@@ -87,24 +91,51 @@ bool lookup512_fake_validate(const unsigned char *bytes, size_t len) {
     while (i < l) {
         Simd512 v1 = simd512_load((bytes + i));
         Simd512 prev1 = simd512_palingr(v1, v0, 1);
-
         Simd512 byte_1_high = simd512_shuf(table1, simd512_shr(prev1, 4));
         Simd512 byte_1_low = simd512_shuf(table2, simd512_and(prev1, low_mask));
         Simd512 byte_2_high = simd512_shuf(table3, simd512_shr(v1, 4));
-//    }
         Simd512 classification = simd512_and(simd512_and(byte_1_high, byte_1_low), byte_2_high);
-//
         Simd512 prev2 = simd512_palingr(v1, v0, 2);
         Simd512 prev3 = simd512_palingr(v1, v0, 3);
+        Simd512 gte_224 = simd512_subsat(prev2, simd512_set1(96));
+        Simd512 gte_240 = simd512_subsat(prev3, simd512_set1(112)); // 0111_0000
+        Simd512 combined = simd512_or(gte_224, gte_240);
+        Simd512 expected_continuations = simd512_and(combined, simd512_set1(0x80));
+        Simd512 final = simd512_xor(expected_continuations, classification);
 
-        // todo: pick up here with the 3-4 byte checks
-        acc = classification;
 
+        acc = simd512_or(acc, final);
         i += 64;
         v0 = v1;
     }
-    printf("%d\n", i);
-    print_vec512(acc);
-    print_vec512(v0);
-    return true;
+
+
+    char buf[64] = {
+            0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+            0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+            0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+            0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0};
+    memcpy(buf, (bytes + i), len - l);
+    bool last_ok = buf[63] < (const unsigned char) 0xc0;
+    bool second_last_ok = buf[62] < (const unsigned char) 0xe0;
+    bool third_last_ok = buf[61] < (const unsigned char) 0xf0;
+    if (!(last_ok && second_last_ok && third_last_ok)) return false;
+
+    Simd512 v1 = simd512_load(buf);
+    Simd512 prev1 = simd512_palingr(v1, v0, 1);
+    Simd512 byte_1_high = simd512_shuf(table1, simd512_shr(prev1, 4));
+    Simd512 byte_1_low = simd512_shuf(table2, simd512_and(prev1, low_mask));
+    Simd512 byte_2_high = simd512_shuf(table3, simd512_shr(v1, 4));
+    Simd512 classification = simd512_and(simd512_and(byte_1_high, byte_1_low), byte_2_high);
+    Simd512 prev2 = simd512_palingr(v1, v0, 2);
+    Simd512 prev3 = simd512_palingr(v1, v0, 3);
+    Simd512 gte_224 = simd512_subsat(prev2, simd512_set1(96));
+    Simd512 gte_240 = simd512_subsat(prev3, simd512_set1(112)); // 0111_0000
+    Simd512 combined = simd512_or(gte_224, gte_240);
+    Simd512 expected_continuations = simd512_and(combined, simd512_set1(0x80));
+    Simd512 final = simd512_xor(expected_continuations, classification);
+
+    acc = simd512_or(acc, final);
+
+    return simd512_testz(acc);
 }
