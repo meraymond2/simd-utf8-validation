@@ -22,37 +22,37 @@ int main(int argc, char **argv) {
     clock_t end;
     float seconds;
 
-//    start = clock();
-//    is_valid = branchy_validate(buf, filesize);
-//    end = clock();
-//    seconds = (float) (end - start) / CLOCKS_PER_SEC;
-//    printf("Branchy: ");
-//    printf("is valid: %s\n", is_valid ? "true" : "false");
-//    printf("Took: %.8lf\n", seconds);
-//
-//    start = clock();
-//    is_valid = fsm_validate(buf, filesize);
-//    end = clock();
-//    seconds = (float) (end - start) / CLOCKS_PER_SEC;
-//    printf("FSM: ");
-//    printf("is valid: %s\n", is_valid ? "true" : "false");
-//    printf("Took: %.8lf\n", seconds);
-//
-//    start = clock();
-//    is_valid = lookup_validate(buf, filesize);
-//    end = clock();
-//    seconds = (float) (end - start) / CLOCKS_PER_SEC;
-//    printf("Lookup: ");
-//    printf("is valid: %s\n", is_valid ? "true" : "false");
-//    printf("Took: %.8lf\n", seconds);
-//
-//    start = clock();
-//    is_valid = lookup256_validate(buf, filesize);
-//    end = clock();
-//    seconds = (float) (end - start) / CLOCKS_PER_SEC;
-//    printf("Lookup 256: ");
-//    printf("is valid: %s\n", is_valid ? "true" : "false");
-//    printf("Took: %.8lf\n", seconds);
+    start = clock();
+    is_valid = branchy_validate(buf, filesize);
+    end = clock();
+    seconds = (float) (end - start) / CLOCKS_PER_SEC;
+    printf("Branchy: ");
+    printf("is valid: %s\n", is_valid ? "true" : "false");
+    printf("Took: %.8lf\n", seconds);
+
+    start = clock();
+    is_valid = fsm_validate(buf, filesize);
+    end = clock();
+    seconds = (float) (end - start) / CLOCKS_PER_SEC;
+    printf("FSM: ");
+    printf("is valid: %s\n", is_valid ? "true" : "false");
+    printf("Took: %.8lf\n", seconds);
+
+    start = clock();
+    is_valid = lookup_validate(buf, filesize);
+    end = clock();
+    seconds = (float) (end - start) / CLOCKS_PER_SEC;
+    printf("Lookup: ");
+    printf("is valid: %s\n", is_valid ? "true" : "false");
+    printf("Took: %.8lf\n", seconds);
+
+    start = clock();
+    is_valid = lookup256_validate(buf, filesize);
+    end = clock();
+    seconds = (float) (end - start) / CLOCKS_PER_SEC;
+    printf("Lookup 256: ");
+    printf("is valid: %s\n", is_valid ? "true" : "false");
+    printf("Took: %.8lf\n", seconds);
 
     start = clock();
     is_valid = lookup512_fake_validate(buf, filesize);

@@ -14,6 +14,7 @@ void print_vec256(__m256i v) {
 }
 
 #define shr(v) _mm256_and_si256(_mm256_srli_epi16(v, 4), high_mask_vec)
+#define prev(xs, ys, n) _mm256_alignr_epi8(xs, _mm256_permute2x128_si256(ys, xs, 0x21), 16 - n)
 
 bool lookup256_validate(const unsigned char *bytes, size_t len) {
     size_t l = len - (len % 32);
@@ -38,24 +39,17 @@ bool lookup256_validate(const unsigned char *bytes, size_t len) {
     );
     __m256i acc = _mm256_set1_epi8(0);
 
-        __m256i vv1 = _mm256_loadu_si256((const __m256i *) (bytes + i));
-    print_vec256(vv1);
-    // todo: fix this!
-    print_vec256(
-            _mm256_alignr_epi8(vv1, _mm256_permute2x128_si256(v0, vv1, 0x21), 16 - 1)
-            );
-    print_vec256(_mm256_alignr_epi8(vv1, v0, 0x21));
     while (i < l) {
         // TODO: document this first part
         __m256i v1 = _mm256_loadu_si256((const __m256i *) (bytes + i));
-        __m256i prev1 = _mm256_alignr_epi8(v1, v0, 31);
+        __m256i prev1 = prev(v1, v0, 1);
         __m256i byte_1_high = _mm256_shuffle_epi8(table1, shr(prev1));
         __m256i byte_1_low = _mm256_shuffle_epi8(table2, _mm256_and_si256(prev1, low_mask_vec));
         __m256i byte_2_high = _mm256_shuffle_epi8(table3, shr(v1));
 
         __m256i classification = _mm256_and_si256(_mm256_and_si256(byte_1_high, byte_1_low), byte_2_high);
-        __m256i prev2 = _mm256_alignr_epi8(v1, v0, 30);
-        __m256i prev3 = _mm256_alignr_epi8(v1, v0, 29);
+        __m256i prev2 = prev(v1, v0, 2);
+        __m256i prev3 = prev(v1, v0, 3);
 
         // For the 3-4 byte check, we first identify everywhere in the chunk that we expect to see continuation bytes.
         // We only need to look for the 3rd and 4th bytes, because we've already handled the 2nd bytes as part of the
